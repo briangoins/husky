@@ -75,3 +75,58 @@ yarn ...
 ## Does it work on Windows?
 
 Yes. When you install Git on Windows, it comes with the necessary software to run shell scripts.
+
+## Missing hook output
+
+If you are sending output from a hook and not seeing it show up, and instead you see:
+
+```
+husky - pre-commit hook exited with code <error_code> (error)
+```
+
+By default, Husky exits immediately from hooks if a command exits with a non-zero status. If you need to change this behavior, add a `set +e` statement to the beginning of your hook, and a `set -e` statement at the end.
+
+For instance, take the following hook example:
+
+::: code-group
+
+```shell [/project/.husky/pre-commit]
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+if ! npm run lint
+then
+	cat <<\EOF
+Linting failed.
+EOF
+	exit 1
+fi
+```
+
+:::
+
+
+If the `lint` script above returns a non-zero exit status, in Husky by default, the hook will immediately exit, without sending output.
+
+In order to see our output, we could update the example like this:
+
+::: code-group
+
+```shell [/project/.husky/pre-commit]
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+set +e
+
+if ! npm run lint
+then
+	cat <<\EOF
+Linting failed.
+EOF
+	exit 1
+fi
+
+set -e
+```
+
+:::
